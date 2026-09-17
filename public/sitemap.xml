@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Static placeholder sitemap. Product URLs are dynamic (one per perfume slug),
+  so generate the full sitemap server-side or with a small build script once
+  the product catalog is populated in Supabase, and replace this file.
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://royalfragrance.co.ke/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://royalfragrance.co.ke/shop</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+</urlset>
