@@ -130,6 +130,12 @@ create table if not exists site_settings (
   about_text text default 'Royal Fragrance KE brings you original perfumes from carefully selected fragrance brands, delivered across Kenya.',
   hero_heading text default 'Discover Your Signature Scent.',
   hero_subheading text default 'Original perfumes from carefully selected fragrance brands, delivered across Kenya.',
+  banner_enabled boolean not null default false,
+  banner_heading text,
+  banner_subheading text,
+  banner_image_url text,
+  banner_button_text text default 'Shop Now',
+  banner_button_link text default '/shop',
   updated_at timestamptz not null default now()
 );
 

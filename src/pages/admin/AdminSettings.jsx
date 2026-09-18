@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useSettings } from '@/context/SettingsContext'
 import { adminUpdateSettings } from '@/lib/api'
+import ImageUploader from '@/components/admin/ImageUploader'
 
 export default function AdminSettings() {
   const { settings, refresh } = useSettings()
@@ -82,6 +83,44 @@ export default function AdminSettings() {
         <Field label="Homepage Hero Subheading">
           <textarea rows={2} value={form.hero_subheading || ''} onChange={(e) => update('hero_subheading', e.target.value)} className="input" />
         </Field>
+
+        <div className="hairline-solid" />
+
+        <div>
+          <label className="flex items-center gap-2 text-sm mb-4">
+            <input
+              type="checkbox"
+              checked={!!form.banner_enabled}
+              onChange={(e) => update('banner_enabled', e.target.checked)}
+              className="h-4 w-4 accent-emerald-800"
+            />
+            Show promotional banner on homepage
+          </label>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <Field label="Banner Heading">
+              <input value={form.banner_heading || ''} onChange={(e) => update('banner_heading', e.target.value)} className="input" placeholder="e.g. Festive Season Offers" />
+            </Field>
+            <Field label="Button Text">
+              <input value={form.banner_button_text || ''} onChange={(e) => update('banner_button_text', e.target.value)} className="input" placeholder="Shop Now" />
+            </Field>
+            <Field label="Banner Subheading">
+              <input value={form.banner_subheading || ''} onChange={(e) => update('banner_subheading', e.target.value)} className="input" />
+            </Field>
+            <Field label="Button Link">
+              <input value={form.banner_button_link || ''} onChange={(e) => update('banner_button_link', e.target.value)} className="input" placeholder="/shop" />
+            </Field>
+          </div>
+
+          <div className="mt-5">
+            <label className="text-xs tracking-wide text-charcoal/50 block mb-2">Banner Image</label>
+            <ImageUploader
+              images={form.banner_image_url}
+              onChange={(url) => update('banner_image_url', url)}
+              multiple={false}
+            />
+          </div>
+        </div>
 
         <div className="flex items-center gap-4">
           <button type="submit" disabled={saving} className="px-7 py-3 bg-emerald-900 text-ivory text-sm disabled:opacity-60">

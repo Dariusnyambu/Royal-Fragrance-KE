@@ -16,6 +16,12 @@ const DEFAULT_SETTINGS = {
   hero_heading: 'Discover Your Signature Scent.',
   hero_subheading:
     'Original perfumes from carefully selected fragrance brands, delivered across Kenya.',
+  banner_enabled: false,
+  banner_heading: '',
+  banner_subheading: '',
+  banner_image_url: '',
+  banner_button_text: 'Shop Now',
+  banner_button_link: '/shop',
 }
 
 const SettingsContext = createContext({

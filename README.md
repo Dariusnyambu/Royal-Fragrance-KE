@@ -89,6 +89,23 @@ npm run build
 This outputs to `dist/`. Set the same `VITE_SUPABASE_URL` and
 `VITE_SUPABASE_ANON_KEY` as environment variables on your hosting provider.
 
+## If you ran schema.sql before the promo banner was added
+
+If your Supabase project already existed before this update, run
+`supabase/migrations/002_add_promo_banner.sql` once in the SQL Editor to add
+the new banner columns to `site_settings`. Fresh installs already get these
+columns from `schema.sql`.
+
+## The homepage hero image
+
+The hero section automatically shows the photo of your highest-priced
+visible product (falling back to a plain graphic if none have a photo yet).
+There's nothing to configure — once you add prices and at least one photo to
+your most expensive perfumes, the hero updates on its own. Everything else
+on the homepage (heading, subheading, and the optional promo banner in
+between the featured products and the categories) is editable from
+**Admin → Settings**.
+
 ## Notes on images
 
 Until you upload real product photography, product cards and detail pages

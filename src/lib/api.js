@@ -1,11 +1,20 @@
 import { supabase } from './supabase'
 
-const PRODUCT_SELECT = `
-  *,
-  brands ( id, name, slug, logo_url ),
-  categories ( id, name, slug ),
-  product_images ( id, image_url, sort_order )
-`
+function buildProductSelect({ brandSlug, categorySlug } = {}) {
+  // Only force an inner join when we actually need to filter on that
+  // relation's columns — forcing !inner unconditionally would silently
+  // exclude any product that has no brand or category assigned yet.
+  const brandJoin = brandSlug ? 'brands!inner' : 'brands'
+  const categoryJoin = categorySlug ? 'categories!inner' : 'categories'
+  return `
+    *,
+    ${brandJoin} ( id, name, slug, logo_url ),
+    ${categoryJoin} ( id, name, slug ),
+    product_images ( id, image_url, sort_order )
+  `
+}
+
+const PRODUCT_SELECT = buildProductSelect()
 
 function applyOrdering(query, sort) {
   switch (sort) {
@@ -34,9 +43,7 @@ export async function fetchProducts({
 } = {}) {
   let query = supabase
     .from('products')
-    .select(
-      PRODUCT_SELECT.replace('brands (', 'brands!inner (').replace('categories (', 'categories!left ('),
-    )
+    .select(buildProductSelect({ brandSlug, categorySlug }))
     .eq('is_visible', true)
 
   if (search) query = query.ilike('name', `%${search}%`)
@@ -80,6 +87,20 @@ export async function fetchRelatedProducts({ categoryId, excludeId, limit = 4 })
   if (error) throw error
   return data ?? []
 }
+
+export async function fetchMostExpensiveProduct() {
+  // Pull a few of the highest-priced products and pick the first with an
+  // image — a product without a photo yet wouldn't make an appealing hero.
+  const { data, error } = await supabase
+    .from('products')
+    .select(PRODUCT_SELECT)
+    .eq('is_visible', true)
+    .order('price', { ascending: false })
+    .limit(5)
+  if (error) throw error
+  return (data ?? []).find((p) => p.product_images?.length > 0) ?? data?.[0] ?? null
+}
+
 
 export async function fetchBrands() {
   const { data, error } = await supabase.from('brands').select('*').order('name')
