@@ -4,10 +4,12 @@ import { ShieldCheck, Sparkles, MessageCircle, Truck } from 'lucide-react'
 import SectionHeading from '@/components/SectionHeading'
 import ProductGrid from '@/components/ProductGrid'
 import PromoBanner from '@/components/PromoBanner'
+import HeroSlider from '@/components/HeroSlider'
+import PromoSlider from '@/components/PromoSlider'
+import ReviewsSection from '@/components/ReviewsSection'
 import { useSettings } from '@/context/SettingsContext'
-import { fetchProducts, fetchCategories, fetchMostExpensiveProduct } from '@/lib/api'
+import { fetchProducts, fetchCategories, fetchMostExpensiveProduct, fetchSlides } from '@/lib/api'
 import { buildGeneralInquiryMessage, openWhatsAppOrder } from '@/lib/whatsapp'
-import { formatKsh } from '@/lib/format'
 import usePageMeta from '@/hooks/usePageMeta'
 
 const TRUST_POINTS = [
@@ -40,6 +42,8 @@ export default function Home() {
   const [newArrivals, setNewArrivals] = useState([])
   const [categories, setCategories] = useState([])
   const [heroProduct, setHeroProduct] = useState(null)
+  const [heroSlides, setHeroSlides] = useState([])
+  const [promoSlides, setPromoSlides] = useState([])
   const [loading, setLoading] = useState(true)
 
   usePageMeta({ description: settings.hero_subheading })
@@ -48,12 +52,14 @@ export default function Home() {
     let mounted = true
     async function load() {
       try {
-        const [f, b, n, c, h] = await Promise.all([
+        const [f, b, n, c, h, hs, ps] = await Promise.all([
           fetchProducts({ tag: 'featured', limit: 4 }),
           fetchProducts({ tag: 'bestseller', limit: 4 }),
           fetchProducts({ tag: 'new', limit: 4 }),
           fetchCategories(),
           fetchMostExpensiveProduct(),
+          fetchSlides('hero'),
+          fetchSlides('promo'),
         ])
         if (!mounted) return
         setFeatured(f)
@@ -61,6 +67,8 @@ export default function Home() {
         setNewArrivals(n)
         setCategories(c)
         setHeroProduct(h)
+        setHeroSlides(hs)
+        setPromoSlides(ps)
       } catch (err) {
         console.error(err)
       } finally {
@@ -75,69 +83,7 @@ export default function Home() {
 
   return (
     <div>
-      {/* Hero */}
-      <section className="relative bg-emerald-950 text-ivory overflow-hidden">
-        <div className="mx-auto max-w-7xl px-5 sm:px-8 py-20 sm:py-28 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          <div className="relative z-10">
-            <h1 className="font-display text-5xl sm:text-6xl leading-[1.05] text-ivory">
-              {settings.hero_heading}
-            </h1>
-            <p className="mt-6 text-ivory/70 max-w-md text-[15px] leading-relaxed">
-              {settings.hero_subheading}
-            </p>
-            <div className="mt-9 flex flex-wrap items-center gap-4">
-              <Link
-                to="/shop"
-                className="px-7 py-3 bg-gold-400 text-emerald-950 text-sm tracking-wide hover:bg-gold-300 transition-colors"
-              >
-                Shop Perfumes
-              </Link>
-              <button
-                onClick={() =>
-                  openWhatsAppOrder(settings.whatsapp_number, buildGeneralInquiryMessage())
-                }
-                className="px-7 py-3 border border-ivory/30 text-ivory text-sm tracking-wide hover:border-gold-400 hover:text-gold-300 transition-colors"
-              >
-                Order on WhatsApp
-              </button>
-            </div>
-          </div>
-
-          <div className="relative aspect-[4/5] max-w-sm mx-auto w-full">
-            <div className="absolute inset-0 border border-gold-400/30" style={{ transform: 'translate(14px, 14px)' }} />
-            {heroProduct?.product_images?.[0] ? (
-              <Link
-                to={`/product/${heroProduct.slug}`}
-                className="group relative block h-full w-full overflow-hidden"
-              >
-                <img
-                  src={heroProduct.product_images[0].image_url}
-                  alt={heroProduct.name}
-                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-                />
-                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-emerald-950/90 via-emerald-950/40 to-transparent p-5">
-                  <p className="text-[11px] tracking-widest text-gold-300 uppercase">The Signature Collection</p>
-                  <p className="font-display text-xl text-ivory mt-1">{heroProduct.name}</p>
-                  <p className="text-sm text-ivory/70 mt-0.5">
-                    {formatKsh(heroProduct.sale_price ?? heroProduct.price)}
-                  </p>
-                </div>
-              </Link>
-            ) : (
-              <div className="relative h-full w-full bg-gradient-to-br from-emerald-800 to-emerald-950 flex items-center justify-center overflow-hidden">
-                <svg viewBox="0 0 200 260" className="h-4/5 w-auto opacity-90" aria-hidden="true">
-                  <rect x="70" y="30" width="60" height="16" rx="3" fill="#c6a15e" />
-                  <rect x="80" y="10" width="40" height="24" rx="6" fill="#d9bd83" />
-                  <path d="M55 46 h90 a8 8 0 0 1 8 8 v150 a14 14 0 0 1 -14 14 h-78 a14 14 0 0 1 -14 -14 v-150 a8 8 0 0 1 8 -8 z" fill="#0e3b2e" stroke="#c6a15e" strokeWidth="1.5" />
-                  <rect x="70" y="90" width="60" height="80" fill="#faf7f0" opacity="0.08" />
-                  <text x="100" y="135" textAnchor="middle" fill="#d9bd83" fontFamily="Cormorant Garamond, serif" fontSize="14" letterSpacing="2">ROYAL</text>
-                  <text x="100" y="152" textAnchor="middle" fill="#d9bd83" fontFamily="Cormorant Garamond, serif" fontSize="10" letterSpacing="3">FRAGRANCE</text>
-                </svg>
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
+      <HeroSlider slides={heroSlides} settings={settings} heroProduct={heroProduct} />
 
       <div className="mx-auto max-w-7xl px-5 sm:px-8">
         {/* Featured */}
@@ -223,6 +169,10 @@ export default function Home() {
           <ProductGrid products={newArrivals} loading={loading} emptyMessage="New arrivals will appear here once added." />
         </section>
       </div>
+
+      <PromoSlider slides={promoSlides} />
+
+      <ReviewsSection />
 
       {/* WhatsApp CTA */}
       <section className="bg-gold-100 border-t border-gold-300/40">

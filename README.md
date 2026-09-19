@@ -96,6 +96,32 @@ If your Supabase project already existed before this update, run
 the new banner columns to `site_settings`. Fresh installs already get these
 columns from `schema.sql`.
 
+## Homepage sliders, customer reviews (added after initial launch)
+
+If your Supabase project already existed before this update, run
+`supabase/migrations/003_sliders_and_reviews.sql` once in the SQL Editor. It
+adds:
+- a `slides` table for both the hero slider and the second "promo" slider
+  further down the homepage (with active/inactive, scheduling, ordering, and
+  optional links to a product, category, or custom URL), plus a
+  `slider-images` storage bucket for their images
+- a `reviews` table for the customer review system, with RLS that lets
+  anyone submit a review but only ever shows it publicly once an admin
+  approves it
+
+Fresh installs get all of this automatically from `schema.sql`.
+
+**Managing sliders:** Admin → Sliders. Nothing changes on your homepage
+until you add a slide — the hero keeps showing its original heading/photo
+and the second slider stays hidden until at least one active slide exists
+in it.
+
+**Managing reviews:** Admin → Reviews. New reviews start as "Pending" and
+are invisible on the site until you approve them. You can also mark a
+review as a verified purchase once you've confirmed the order yourself
+(the system has no way to verify this automatically, since orders are
+placed over WhatsApp rather than through a database-backed checkout).
+
 ## The homepage hero image
 
 The hero section automatically shows the photo of your highest-priced

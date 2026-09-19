@@ -114,6 +114,16 @@ export async function fetchCategories() {
   return data ?? []
 }
 
+export async function fetchProductOptions() {
+  const { data, error } = await supabase
+    .from('products')
+    .select('id, name')
+    .eq('is_visible', true)
+    .order('name')
+  if (error) throw error
+  return data ?? []
+}
+
 // ---- Admin: products ----
 export async function adminFetchProducts() {
   const { data, error } = await supabase
@@ -203,15 +213,23 @@ export async function adminUpdateSettings(id, payload) {
 
 // ---- Admin: dashboard stats ----
 export async function adminFetchStats() {
-  const [{ count: total }, { count: available }, { count: outOfStock }, { count: featured }, { count: brands }, { count: categories }] =
-    await Promise.all([
-      supabase.from('products').select('id', { count: 'exact', head: true }),
-      supabase.from('products').select('id', { count: 'exact', head: true }).neq('stock_status', 'out_of_stock'),
-      supabase.from('products').select('id', { count: 'exact', head: true }).eq('stock_status', 'out_of_stock'),
-      supabase.from('products').select('id', { count: 'exact', head: true }).eq('is_featured', true),
-      supabase.from('brands').select('id', { count: 'exact', head: true }),
-      supabase.from('categories').select('id', { count: 'exact', head: true }),
-    ])
+  const [
+    { count: total },
+    { count: available },
+    { count: outOfStock },
+    { count: featured },
+    { count: brands },
+    { count: categories },
+    { count: pendingReviews },
+  ] = await Promise.all([
+    supabase.from('products').select('id', { count: 'exact', head: true }),
+    supabase.from('products').select('id', { count: 'exact', head: true }).neq('stock_status', 'out_of_stock'),
+    supabase.from('products').select('id', { count: 'exact', head: true }).eq('stock_status', 'out_of_stock'),
+    supabase.from('products').select('id', { count: 'exact', head: true }).eq('is_featured', true),
+    supabase.from('brands').select('id', { count: 'exact', head: true }),
+    supabase.from('categories').select('id', { count: 'exact', head: true }),
+    supabase.from('reviews').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+  ])
 
   return {
     total: total ?? 0,
@@ -220,7 +238,130 @@ export async function adminFetchStats() {
     featured: featured ?? 0,
     brands: brands ?? 0,
     categories: categories ?? 0,
+    pendingReviews: pendingReviews ?? 0,
   }
+}
+
+// ---- Slides (hero + promo sliders) ----
+const SLIDE_SELECT = `
+  *,
+  products ( id, name, slug ),
+  categories ( id, name, slug )
+`
+
+export async function fetchSlides(section) {
+  const { data, error } = await supabase
+    .from('slides')
+    .select(SLIDE_SELECT)
+    .eq('section', section)
+    .order('display_order', { ascending: true })
+  if (error) throw error
+
+  // The RLS policy already restricts rows to active + within schedule for
+  // public callers, but admins bypass that filter (they need to see
+  // inactive/scheduled slides too), so re-apply it here for the storefront.
+  const now = new Date()
+  return (data ?? []).filter((slide) => {
+    if (!slide.is_active) return false
+    if (slide.starts_at && new Date(slide.starts_at) > now) return false
+    if (slide.ends_at && new Date(slide.ends_at) < now) return false
+    return true
+  })
+}
+
+export async function adminFetchSlides(section) {
+  const { data, error } = await supabase
+    .from('slides')
+    .select(SLIDE_SELECT)
+    .eq('section', section)
+    .order('display_order', { ascending: true })
+  if (error) throw error
+  return data ?? []
+}
+
+export async function adminCreateSlide(payload) {
+  const { data, error } = await supabase.from('slides').insert(payload).select().single()
+  if (error) throw error
+  return data
+}
+
+export async function adminUpdateSlide(id, payload) {
+  const { data, error } = await supabase.from('slides').update(payload).eq('id', id).select().single()
+  if (error) throw error
+  return data
+}
+
+export async function adminDeleteSlide(id) {
+  const { error } = await supabase.from('slides').delete().eq('id', id)
+  if (error) throw error
+}
+
+export async function adminReorderSlides(orderedIds) {
+  await Promise.all(
+    orderedIds.map((id, index) => supabase.from('slides').update({ display_order: index }).eq('id', id)),
+  )
+}
+
+// ---- Reviews ----
+const REVIEW_SELECT = `
+  *,
+  products ( id, name, slug )
+`
+
+export async function fetchApprovedReviews({ productId, limit } = {}) {
+  let query = supabase
+    .from('reviews')
+    .select(REVIEW_SELECT)
+    .eq('status', 'approved')
+    .order('created_at', { ascending: false })
+  if (productId) query = query.eq('product_id', productId)
+  if (limit) query = query.limit(limit)
+  const { data, error } = await query
+  if (error) throw error
+  return data ?? []
+}
+
+export async function submitReview({ displayName, productId, rating, reviewText }) {
+  const payload = {
+    display_name: displayName.trim(),
+    product_id: productId || null,
+    rating,
+    review_text: reviewText.trim(),
+  }
+  const { data, error } = await supabase.from('reviews').insert(payload).select().single()
+  if (error) throw error
+  return data
+}
+
+export async function adminFetchReviews(status) {
+  let query = supabase.from('reviews').select(REVIEW_SELECT).order('created_at', { ascending: false })
+  if (status && status !== 'all') query = query.eq('status', status)
+  const { data, error } = await query
+  if (error) throw error
+  return data ?? []
+}
+
+export async function adminModerateReview(id, { status, rejectionReason, isVerifiedPurchase }) {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  const payload = {
+    status,
+    moderated_by: user?.id ?? null,
+    moderated_at: new Date().toISOString(),
+  }
+  if (rejectionReason !== undefined) payload.rejection_reason = rejectionReason
+  if (isVerifiedPurchase !== undefined) payload.is_verified_purchase = isVerifiedPurchase
+
+  const { data, error } = await supabase.from('reviews').update(payload).eq('id', id).select().single()
+  if (error) throw error
+  return data
+}
+
+export async function adminDeleteReview(id) {
+  const { error } = await supabase.from('reviews').delete().eq('id', id)
+  if (error) throw error
 }
 
 // ---- Storage upload helper ----

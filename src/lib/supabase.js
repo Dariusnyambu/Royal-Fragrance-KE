@@ -22,6 +22,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 export const BUCKETS = {
   products: 'product-images',
   brands: 'brand-logos',
+  slides: 'slider-images',
 }
 
 export function publicImageUrl(bucket, path) {

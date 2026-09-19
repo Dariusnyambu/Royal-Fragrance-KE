@@ -13,6 +13,8 @@ import AdminProductForm from './pages/admin/AdminProductForm'
 import AdminBrands from './pages/admin/AdminBrands'
 import AdminCategories from './pages/admin/AdminCategories'
 import AdminSettings from './pages/admin/AdminSettings'
+import AdminSlides from './pages/admin/AdminSlides'
+import AdminReviews from './pages/admin/AdminReviews'
 import ProtectedRoute from './components/ProtectedRoute'
 
 export default function App() {
@@ -42,6 +44,8 @@ export default function App() {
         <Route path="products/:id/edit" element={<AdminProductForm />} />
         <Route path="brands" element={<AdminBrands />} />
         <Route path="categories" element={<AdminCategories />} />
+        <Route path="slides" element={<AdminSlides />} />
+        <Route path="reviews" element={<AdminReviews />} />
         <Route path="settings" element={<AdminSettings />} />
       </Route>
     </Routes>

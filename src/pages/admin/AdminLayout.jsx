@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { NavLink, Outlet, Link } from 'react-router-dom'
-import { LayoutDashboard, Package, Tag, FolderTree, Settings, LogOut, Menu, X } from 'lucide-react'
+import { LayoutDashboard, Package, Tag, FolderTree, Settings, LogOut, Menu, X, Images, MessageSquareText } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 
 const LINKS = [
@@ -8,6 +8,8 @@ const LINKS = [
   { to: '/admin/products', label: 'Products', icon: Package },
   { to: '/admin/brands', label: 'Brands', icon: Tag },
   { to: '/admin/categories', label: 'Categories', icon: FolderTree },
+  { to: '/admin/slides', label: 'Sliders', icon: Images },
+  { to: '/admin/reviews', label: 'Reviews', icon: MessageSquareText },
   { to: '/admin/settings', label: 'Settings', icon: Settings },
 ]
 

@@ -6,6 +6,7 @@ import { buildOrderMessage, openWhatsAppOrder } from '@/lib/whatsapp'
 import { useSettings } from '@/context/SettingsContext'
 import QuantitySelector from '@/components/QuantitySelector'
 import ProductGrid from '@/components/ProductGrid'
+import ProductReviews from '@/components/ProductReviews'
 import usePageMeta from '@/hooks/usePageMeta'
 
 export default function ProductDetail() {
@@ -252,6 +253,8 @@ export default function ProductDetail() {
           <ProductGrid products={related} />
         </section>
       )}
+
+      <ProductReviews productId={product.id} />
     </div>
   )
 }
